@@ -15,6 +15,85 @@ interface ChatInterfaceProps {
   onNavigateToKundli: () => void;
 }
 
+const formatInlineMarkdown = (text: string, isUser: boolean): React.ReactNode => {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*.*?\*\*|\*.*?\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+    const token = match[0];
+    if (token.startsWith('**') && token.endsWith('**')) {
+      parts.push(
+        <strong key={match.index} className={isUser ? "font-bold text-white" : "font-bold text-vedic-950"}>
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith('*') && token.endsWith('*')) {
+      parts.push(
+        <em key={match.index} className="italic">
+          {token.slice(1, -1)}
+        </em>
+      );
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+  return parts.length > 0 ? parts : text;
+};
+
+const renderFormattedMessage = (content: string, isUser: boolean) => {
+  const paragraphs = content.split(/\n\s*\n/);
+
+  return (
+    <div className="space-y-2.5">
+      {paragraphs.map((para, pIdx) => {
+        const trimmed = para.trim();
+        if (!trimmed) return null;
+
+        const lines = trimmed.split('\n');
+        const isBulletList = lines.length > 0 && lines.every(line => line.trim().startsWith('- ') || line.trim().startsWith('* '));
+
+        if (isBulletList) {
+          return (
+            <ul key={pIdx} className="list-disc pl-4 space-y-1 my-1">
+              {lines.map((line, lIdx) => {
+                const itemText = line.trim().replace(/^[-*]\s+/, '');
+                return <li key={lIdx} className="leading-relaxed">{formatInlineMarkdown(itemText, isUser)}</li>;
+              })}
+            </ul>
+          );
+        }
+
+        if (trimmed.startsWith('>')) {
+          const quoteText = lines.map(l => l.replace(/^>\s?/, '')).join(' ');
+          return (
+            <blockquote
+              key={pIdx}
+              className={`border-l-2 pl-3 py-1 text-xs italic ${
+                isUser ? 'border-gold-400 text-ivory-200' : 'border-gold-600 text-stone-600 bg-ivory-200/50 rounded-r'
+              }`}
+            >
+              {formatInlineMarkdown(quoteText, isUser)}
+            </blockquote>
+          );
+        }
+
+        return (
+          <p key={pIdx} className="leading-relaxed">
+            {formatInlineMarkdown(trimmed, isUser)}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
+
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   conversation,
   activeChart,
@@ -68,15 +147,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const suggestions = activeChart && activeChart.is_confirmed ? (
     language === 'hi' ? [
-      "💼 मेरी नौकरी और करियर के बारे में बताएं",
-      "💍 मेरी कुंडली के अनुसार विवाह और जीवनसाथी कैसा होगा?",
-      "💰 मेरी कुंडली में धन और आर्थिक स्थिति कैसी है?",
-      "🌟 मेरे लग्न और स्वभाव की मुख्य विशेषताएं क्या हैं?"
+      "💼 क्या मुझे नौकरी मिलेगी और मेरा करियर कैसा रहेगा?",
+      "💍 मेरी शादी कब होगी और मेरा जीवनसाथी कैसा होगा?",
+      "💰 मेरी कुंडली के अनुसार मेरी आर्थिक स्थिति और धन कैसा रहेगा?",
+      "🌟 मेरे लग्न और व्यक्तित्व की मुख्य ताकत और दिशा क्या है?"
     ] : [
-      "💼 Tell me about my job & career prospects (10th house)",
-      "💍 What does my chart say about my marriage & spouse (7th house)?",
-      "💰 What are the wealth and financial indicators in my chart?",
-      "🌟 What are the primary strengths and qualities of my Lagna?"
+      "💼 Will I get a job and what are my career prospects?",
+      "💍 When will I get married and how will my spouse be?",
+      "💰 What does my chart indicate about wealth and financial success?",
+      "🌟 What are the primary strengths and life direction of my Lagna?"
     ]
   ) : (
     language === 'hi' ? [
@@ -196,8 +275,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 }`}
               >
                 {/* Content formatted */}
-                <div className="whitespace-pre-wrap space-y-2">
-                  {msg.content}
+                <div className="space-y-2">
+                  {renderFormattedMessage(msg.content, isUser)}
                 </div>
 
                 {/* RAG Reference Sources Dropdown */}

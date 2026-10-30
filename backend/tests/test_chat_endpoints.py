@@ -67,6 +67,32 @@ async def test_chat_lifecycle_with_unconfirmed_and_confirmed_chart(client: Async
     assert "लग्न" in hindi_data["content"] or "कुंडली" in hindi_data["content"]
 
 
+    # 7. Ask life question: "wikll i get job" (testing typo tolerance and natural conversational career advice)
+    job_msg_res = await client.post(
+        f"/api/chats/{conv_id}/messages",
+        json={"content": "wikll i get job"},
+        headers=user_a["headers"]
+    )
+    assert job_msg_res.status_code == 200
+    job_data = job_msg_res.json()
+    # Should naturally answer career/job question without rigid headers
+    assert "job" in job_data["content"].lower() or "career" in job_data["content"].lower()
+    assert "1. Verified Chart Facts" not in job_data["content"]
+    assert "Ethical Note" not in job_data["content"]
+
+    # 8. Ask life question in Hindi: "क्या मुझे नौकरी मिलेगी?"
+    hindi_job_res = await client.post(
+        f"/api/chats/{conv_id}/messages",
+        json={"content": "क्या मुझे नौकरी मिलेगी?"},
+        headers=user_a["headers"]
+    )
+    assert hindi_job_res.status_code == 200
+    hindi_job_data = hindi_job_res.json()
+    assert "नौकरी" in hindi_job_data["content"]
+    assert "दशम भाव" in hindi_job_data["content"] or "10th House" in hindi_job_data["content"]
+    assert "1. सत्यापित कुंडली स्थिति" not in hindi_job_data["content"]
+
+
 @pytest.mark.asyncio
 async def test_general_chat_without_chart(client: AsyncClient, user_a: dict):
     # Start conversation without chart
@@ -86,3 +112,4 @@ async def test_general_chat_without_chart(client: AsyncClient, user_a: dict):
     assert msg_res.status_code == 200
     msg_data = msg_res.json()
     assert len(msg_data["content"]) > 20
+

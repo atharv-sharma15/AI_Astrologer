@@ -140,7 +140,10 @@ class ChatService:
             for m in conversation.messages[-6:]
         ]
 
-        language = msg_in.language or conversation.preferred_language or "en"
+        user_content = msg_in.content.strip()
+        # Auto-detect language if Hindi Devanagari script is present
+        has_devanagari = any('\u0900' <= char <= '\u097F' for char in user_content)
+        language = "hi" if has_devanagari else (msg_in.language or conversation.preferred_language or "en")
 
         # 4. Generate grounded AI response
         ai_reply_text, sources = await gemini_service.generate_chat_response(
