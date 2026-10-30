@@ -12,7 +12,7 @@ disown
 
 echo "Starting VedViki Frontend on http://localhost:5173..."
 cd "$DIR/frontend"
-nohup npm run dev -- --host 127.0.0.1 --port 5173 < /dev/null > "$DIR/frontend/frontend.log" 2>&1 &
+CI=true nohup "$DIR/frontend/node_modules/.bin/vite" --host 127.0.0.1 --port 5173 > "$DIR/frontend/frontend.log" 2>&1 &
 disown
 
 sleep 2
