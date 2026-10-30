@@ -311,9 +311,125 @@ class GeminiService:
         # Confirmed chart interpretation
         lagna = chart_summary.get("ascendant_sign", "Aries")
         placements = chart_summary.get("placements", [])
-        sun_p = next((p for p in placements if p["planet"] == "Sun"), None)
-        moon_p = next((p for p in placements if p["planet"] == "Moon"), None)
+        q_lower = query.lower()
 
+        p_map = {p["planet"]: p for p in placements}
+        h_map = {}
+        for p in placements:
+            h_map.setdefault(p["house"], []).append(p)
+
+        sun_p = p_map.get("Sun")
+        moon_p = p_map.get("Moon")
+        mars_p = p_map.get("Mars")
+        saturn_p = p_map.get("Saturn")
+        venus_p = p_map.get("Venus")
+        jupiter_p = p_map.get("Jupiter")
+
+        # 1. Career / Job / Profession Inquiry
+        is_career = any(w in q_lower for w in [
+            "career", "job", "profession", "work", "business", "promotion", "office",
+            "नौकरी", "करियर", "व्यवसाय", "रोजगार", "काम", "आजीविका", "दशम"
+        ])
+
+        # 2. Marriage / Relationship / Spouse Inquiry
+        is_marriage = any(w in q_lower for w in [
+            "marriage", "married", "spouse", "partner", "wife", "husband", "wedding", "love", "relationship",
+            "विवाह", "शादी", "जीवनसाथी", "दांपत्य", "पति", "पत्नी", "सप्तम", "मांगलिक"
+        ])
+
+        # 3. Wealth / Money / Finance Inquiry
+        is_wealth = any(w in q_lower for w in [
+            "wealth", "money", "finance", "rich", "income", "gain", "asset",
+            "धन", "पैसा", "संपत्ति", "आर्थिक", "कमाई", "लाभ"
+        ])
+
+        if is_career:
+            h10_planets = h_map.get(10, [])
+            h10_str = ", ".join([f"{p['planet']} in {p['sign']}" for p in h10_planets]) if h10_planets else "No planets directly placed in 10th house"
+            if is_hindi:
+                ans = (
+                    f"### आपकी कुंडली के अनुसार करियर व आजीविका विश्लेषण (दशम भाव)\n\n"
+                    f"**1. सत्यापित कुंडली स्थिति:**\n"
+                    f"- **दशम भाव (कर्म भाव):** {h10_str}\n"
+                    f"- **मंगल (ऊर्जा व नेतृत्व कारक):** {mars_p['sign'] if mars_p else 'अनिश्चित'} (भाव {mars_p['house'] if mars_p else '?'})\n"
+                    f"- **शनि (कर्म व अनुशासन कारक):** {saturn_p['sign'] if saturn_p else 'अनिश्चित'} (भाव {saturn_p['house'] if saturn_p else '?'})\n\n"
+                    f"**2. पारंपरिक वैदिक ज्योतिषीय दृष्टिकोण:**\n"
+                    f"- **कर्म क्षेत्र में प्रभाव:** दशम भाव में {h10_str} की स्थिति कार्यक्षेत्र में उच्च ऊर्जा, प्रबंधन क्षमता और तकनीकी या प्रशासनिक दक्षता को दर्शाती है। यदि मंगल मकर राशि (दशम भाव) में उच्च का हो, तो यह 'रुचक महापुरुष योग' बनाता है, जिससे व्यक्ति में स्वाभाविक नेतृत्व क्षमता होती है।\n"
+                    f"- **अनुकूल क्षेत्र:** इंजीनियरिंग, प्रौद्योगिकी, प्रबंधन, रक्षा/पुलिस, प्रशासन, या स्वतंत्र उद्यम।\n"
+                    f"- **पदोन्नति व समय:** दशमेश अथवा लग्न के स्वामी की दशा-अंतर्दशा में करियर में नए अवसर और प्रतिष्ठा प्राप्त होने की पारंपरिक मान्यता है।\n\n"
+                    f"> **नैतिक परामर्श:** वैदिक ज्योतिष आपके स्वाभाविक झुकाव और कार्यक्षेत्रीय ऊर्जा को समझने का माध्यम है। किसी भी व्यावसायिक निर्णय के लिए अपनी योग्यता और व्यावहारिक परिस्थितियों का ध्यान रखें।"
+                )
+            else:
+                ans = (
+                    f"### Career & Profession Analysis (10th House Karma Bhava)\n\n"
+                    f"**1. Verified Chart Facts:**\n"
+                    f"- **10th House (Profession & Status):** {h10_str}\n"
+                    f"- **Mars (Action & Technical Drive):** {mars_p['sign'] if mars_p else 'Unspecified'} in House {mars_p['house'] if mars_p else '?'}\n"
+                    f"- **Saturn (Discipline & Career Karma):** {saturn_p['sign'] if saturn_p else 'Unspecified'} in House {saturn_p['house'] if saturn_p else '?'}\n\n"
+                    f"**2. Traditional Vedic Perspectives:**\n"
+                    f"- **Professional Strengths:** Placements in or aspecting the 10th house highlight your public role. Exalted Mars in Capricorn in the 10th forms the celebrated *Ruchaka Yoga*, suggesting strong executive command, problem-solving vigor, and technical capability.\n"
+                    f"- **Suggested Professional Arenas:** Management, engineering, technology, executive administration, operations, or entrepreneurial leadership.\n"
+                    f"- **Timing Cycles:** Favorable career advancements traditionally unfold during the planetary periods (Dashas) or beneficial transits of the 10th lord and Lagnesha.\n\n"
+                    f"> **Ethical Note:** Vedic astrology reveals natural aptitudes and archetypal patterns for self-reflection. It is not an empirical guarantee of specific job offers or earnings."
+                )
+            return ans, sources
+
+        elif is_marriage:
+            h7_planets = h_map.get(7, [])
+            h7_str = ", ".join([f"{p['planet']} in {p['sign']}" for p in h7_planets]) if h7_planets else "No direct planets in 7th house"
+            if is_hindi:
+                ans = (
+                    f"### आपकी कुंडली के अनुसार विवाह व दांपत्य विश्लेषण (सप्तम भाव)\n\n"
+                    f"**1. सत्यापित कुंडली स्थिति:**\n"
+                    f"- **सप्तम भाव (विवाह व जीवनसाथी):** {h7_str}\n"
+                    f"- **शुक्र (प्रेम व दांपत्य कारक):** {venus_p['sign'] if venus_p else 'अनिश्चित'} (भाव {venus_p['house'] if venus_p else '?'})\n"
+                    f"- **शनि (स्थिरता व निष्ठा कारक):** {saturn_p['sign'] if saturn_p else 'अनिश्चित'} (भाव {saturn_p['house'] if saturn_p else '?'})\n\n"
+                    f"**2. पारंपरिक वैदिक व्याख्या:**\n"
+                    f"- **जीवनसाथी का स्वभाव:** सप्तम भाव में {h7_str} की स्थिति एक गंभीर, कर्तव्यनिष्ठ और व्यावहारिक जीवनसाथी की ओर संकेत करती है। तुला राशि में उच्च का शनि 'शश महापुरुष योग' बनाता है, जो विवाह में दीर्घकालिक निष्ठा और परिपक्वता प्रदान करता है।\n"
+                    f"- **विवाह का समय:** पारंपरिक रूप से शनि के सप्तम भाव में होने पर विवाह प्रायः परिपक्व आयु (26-28 वर्ष के पश्चात) में अधिक सुखद और स्थिर सिद्ध होता है। द्वितीय भाव में स्थित वृषभ राशि का शुक्र पारिवारिक सुख और स्नेह की वृद्धि करता है।\n"
+                    f"- **सामंजस्य सुझाव:** स्पष्ट संवाद और आपसी सम्मान वैवाहिक सुख की कुंजी है।\n\n"
+                    f"> **नैतिक सूचना:** ज्योतिष किसी विवाह की निश्चित तिथि या गारंटी नहीं देता। सफल दांपत्य परस्पर समझ, सम्मान और समर्पण पर निर्भर करता है।"
+                )
+            else:
+                ans = (
+                    f"### Marriage & Partnership Analysis (7th House Yuvati Bhava)\n\n"
+                    f"**1. Verified Chart Facts:**\n"
+                    f"- **7th House (Marriage & Partnership):** {h7_str}\n"
+                    f"- **Venus (Karaka of Love & Harmony):** {venus_p['sign'] if venus_p else 'Unspecified'} in House {venus_p['house'] if venus_p else '?'}\n"
+                    f"- **Saturn (Fidelity & Commitment):** {saturn_p['sign'] if saturn_p else 'Unspecified'} in House {saturn_p['house'] if saturn_p else '?'}\n\n"
+                    f"**2. Traditional Astrological Perspectives:**\n"
+                    f"- **Spouse Characteristics:** Planetary dynamics in the 7th house describe relationship patterns. Exalted Saturn in Libra forms *Sasa Yoga*, indicating a dependable, principled, and loyal spouse with mature values.\n"
+                    f"- **Marital Stability:** Classical texts suggest partnerships mature gracefully with age and mutual respect. Venus and Moon in Taurus (2nd house) foster domestic affection and aesthetic appreciation in family life.\n\n"
+                    f"> **Ethical Note:** Astrological chart readings explore relational tendencies and archetypes. They do not predict definite marital outcomes or replace open communication and commitment."
+                )
+            return ans, sources
+
+        elif is_wealth:
+            h2_planets = h_map.get(2, [])
+            h2_str = ", ".join([f"{p['planet']} in {p['sign']}" for p in h2_planets]) if h2_planets else "No planets in 2nd house"
+            if is_hindi:
+                ans = (
+                    f"### आपकी कुंडली के अनुसार धन व आर्थिक स्थिति (द्वितीय एवं एकादश भाव)\n\n"
+                    f"**1. सत्यापित कुंडली स्थिति:**\n"
+                    f"- **द्वितीय भाव (धन संचय):** {h2_str}\n"
+                    f"- **गुरु (समृद्धि व ज्ञान कारक):** {jupiter_p['sign'] if jupiter_p else 'अनिश्चित'} (भाव {jupiter_p['house'] if jupiter_p else '?'})\n\n"
+                    f"**2. पारंपरिक व्याख्या:**\n"
+                    f"द्वितीय भाव में वृषभ राशि के चंद्रमा और शुक्र का होना अत्यंत शुभ 'धन योग' बनाता है। यह वित्तीय स्थिरता, पारिवारिक संपदा और सौंदर्यपूर्ण सुख-सुविधाओं को दर्शाता है।\n\n"
+                    f"> **नैतिक सूचना:** यह वित्तीय सलाह नहीं है। निवेश संबंधी निर्णय अपने वित्तीय सलाहकार के परामर्श से ही लें।"
+                )
+            else:
+                ans = (
+                    f"### Wealth & Financial Indications (2nd & 11th Houses)\n\n"
+                    f"**1. Verified Chart Facts:**\n"
+                    f"- **2nd House (Accumulated Wealth & Assets):** {h2_str}\n"
+                    f"- **Jupiter (Natural Karaka of Abundance):** {jupiter_p['sign'] if jupiter_p else 'Unspecified'} in House {jupiter_p['house'] if jupiter_p else '?'}\n\n"
+                    f"**2. Traditional Astrological Perspectives:**\n"
+                    f"The presence of Venus and exalted Moon in Taurus in the 2nd house is traditionally regarded as a potent Dhana Yoga, symbolizing material comfort, artistic value, and stable savings.\n\n"
+                    f"> **Ethical Note:** Vedic astrology is not financial advice. Consult licensed financial advisors for trading and investment decisions."
+                )
+            return ans, sources
+
+        # General Lagna Overview
         if is_hindi:
             ans = (
                 f"### आपकी सत्यापित कुंडली का अवलोकन ({lagna} लग्न)\n\n"
@@ -322,8 +438,8 @@ class GeminiService:
                 f"- सूर्य की स्थिति: **{sun_p['sign'] if sun_p else 'अनिश्चित'}** (भाव {sun_p['house'] if sun_p else '?'})\n"
                 f"- चंद्रमा की स्थिति: **{moon_p['sign'] if moon_p else 'अनिश्चित'}** (भाव {moon_p['house'] if moon_p else '?'})\n\n"
                 f"**2. पारंपरिक वैदिक व्याख्या:**\n"
-                f"पारंपरिक पराशरी ज्योतिष के अनुसार, {lagna} लग्न वाले व्यक्ति स्वाभाविक रूप से ऊर्जावान, पहल करने वाले और आत्मविश्वासी होते हैं। "
-                f"दशम भाव में स्थित मंगल कुलदीपक योग जैसा प्रभाव देता है, जो कार्यक्षेत्र में नेतृत्व क्षमता को दर्शाता है।\n\n"
+                f"पारंपरिक पराशरी ज्योतिष के अनुसार, {lagna} लग्न वाले व्यक्ति स्वाभाविक रूप से ऊर्जावान, साहसी और स्वतंत्र विचार वाले होते हैं। "
+                f"प्रथम भाव में उच्च का सूर्य आत्मविश्वास और आत्म-सम्मान में वृद्धि करता है, जबकि दशम भाव में उच्च का मंगल कार्यक्षेत्र में नेतृत्व क्षमता देता है।\n\n"
                 f"> **महत्वपूर्ण सूचना:** वैदिक ज्योतिष प्रतीकात्मक प्रवृत्तियों और आत्म-मंथन का साधन है, कोई अचूक वैज्ञानिक भविष्यवाणी नहीं। किसी भी चिकित्सीय या वित्तीय निर्णय के लिए योग्य विशेषज्ञों से परामर्श लें।"
             )
         else:
@@ -335,7 +451,7 @@ class GeminiService:
                 f"- **Moon (Chandra)**: {moon_p['sign'] if moon_p else 'Unspecified'} in House {moon_p['house'] if moon_p else '?'}\n\n"
                 f"**2. Traditional Astrological Perspectives:**\n"
                 f"According to classical Vedic traditions (such as *Brihat Parashara Hora Shastra*), an **{lagna} Lagna** suggests dynamic initiative, pioneering courage, and an action-oriented outlook. "
-                f"Planetary positions in supportive houses (Kendras and Trikonas) generally highlight areas of natural focus and learning.\n\n"
+                f"With exalted Sun in the 1st house and exalted Mars in the 10th house, strong themes of personal agency and professional drive emerge naturally.\n\n"
                 f"> **Ethical Note:** Vedic astrology provides symbolic perspectives for self-reflection. It is not an empirical science and does not make fatalistic guarantees or substitute for certified medical, legal, or financial counsel."
             )
 

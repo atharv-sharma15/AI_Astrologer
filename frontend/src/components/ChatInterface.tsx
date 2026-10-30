@@ -68,15 +68,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const suggestions = activeChart && activeChart.is_confirmed ? (
     language === 'hi' ? [
-      "मेरे लग्न और लग्नेश के बारे में बताएं",
-      "सूर्य और चंद्रमा की स्थिति क्या दर्शाती है?",
-      "दशम भाव (करियर) में कौन से ग्रह हैं?",
-      "क्या कुंडली में कोई ग्रह वक्री या अस्त है?"
+      "💼 मेरी नौकरी और करियर के बारे में बताएं",
+      "💍 मेरी कुंडली के अनुसार विवाह और जीवनसाथी कैसा होगा?",
+      "💰 मेरी कुंडली में धन और आर्थिक स्थिति कैसी है?",
+      "🌟 मेरे लग्न और स्वभाव की मुख्य विशेषताएं क्या हैं?"
     ] : [
-      "What are the primary strengths and qualities of my Lagna?",
-      "Explain the significations of my Sun and Moon placements",
-      "What career themes are indicated by my 10th house?",
-      "Are there any Vakri (retrograde) or combust planets in my chart?"
+      "💼 Tell me about my job & career prospects (10th house)",
+      "💍 What does my chart say about my marriage & spouse (7th house)?",
+      "💰 What are the wealth and financial indicators in my chart?",
+      "🌟 What are the primary strengths and qualities of my Lagna?"
     ]
   ) : (
     language === 'hi' ? [

@@ -14,6 +14,9 @@ CATEGORY_MAP = {
     "03_rashis_zodiac.md": ("The Twelve Rashis", "rashi"),
     "04_nakshatras.md": ("The 27 Nakshatras", "nakshatra"),
     "05_vedic_principles.md": ("Core Vedic Principles", "principles"),
+    "06_career_job_profession.md": ("Career, Job & Profession (करियर एवं नौकरी)", "career"),
+    "07_marriage_relationships.md": ("Marriage & Relationships (विवाह एवं दांपत्य जीवन)", "marriage"),
+    "08_wealth_finance.md": ("Wealth & Prosperity (धन एवं आर्थिक समृद्धि)", "wealth"),
 }
 
 

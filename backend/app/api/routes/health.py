@@ -49,24 +49,26 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     }
 
 
-@router.post("/api/health/seed-demo")
-async def seed_demo_data(db: AsyncSession = Depends(get_db)):
-    """
-    Development-only endpoint to seed a sample confirmed chart and consultation chat.
-    """
-    demo_user = User(is_guest=True)
-    db.add(demo_user)
-    await db.commit()
-    await db.refresh(demo_user)
+from app.api.deps import get_current_user
+from app.core.security import create_access_token
 
+@router.post("/api/health/seed-demo")
+async def seed_demo_data(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Seeds a sample verified Aries Lagna chart with rich placements (exalted Sun, exalted Mars in 10th house,
+    exalted Saturn in 7th house, Venus & Moon in 2nd house) and a consultation conversation for the active user.
+    """
     sample_extracted = ExtractedChartSchema(
         chart_type="north_indian",
         ascendant_sign="Aries",
         ascendant_degree=14.2,
         detected_language="en",
-        readable_evidence="Verified Kundli with Mesha Lagna and exalted Sun",
+        readable_evidence="Verified Kundli with Mesha Lagna, exalted Sun in 1st house, exalted Mars in 10th house",
         uncertain_fields=[],
-        review_flags=["Pre-verified sample chart"],
+        review_flags=["Pre-verified sample chart for testing"],
         placements=[
             PlacementBase(planet="Sun", sign="Aries", house=1, degree=19.4, nakshatra="Bharani", nakshatra_pada=2),
             PlacementBase(planet="Moon", sign="Taurus", house=2, degree=11.1, nakshatra="Rohini", nakshatra_pada=1),
@@ -81,23 +83,26 @@ async def seed_demo_data(db: AsyncSession = Depends(get_db)):
     )
 
     chart = await ChartService.create_from_extraction(
-        db, demo_user.id, sample_extracted, original_filename="demo_kundli.png"
+        db, current_user.id, sample_extracted, original_filename="demo_kundli.png"
     )
     # Confirm chart
-    await ChartService.confirm_chart(db, chart.id, demo_user.id, ChartConfirmRequest(confirmed=True))
+    await ChartService.confirm_chart(db, chart.id, current_user.id, ChartConfirmRequest(confirmed=True, user_notes="Verified demo Kundli"))
 
     # Create demo conversation
     conv = await ChatService.create_conversation(
-        db, demo_user.id, ConversationCreate(
+        db, current_user.id, ConversationCreate(
             chart_id=chart.id,
-            title="Aries Lagna Consultation",
+            title="Aries Lagna Kundli Reading",
             preferred_language="en"
         )
     )
 
+    token = create_access_token({"sub": current_user.id, "is_guest": current_user.is_guest})
+
     return {
         "status": "seeded",
-        "guest_user_id": demo_user.id,
+        "user_id": current_user.id,
+        "access_token": token,
         "chart_id": chart.id,
         "conversation_id": conv.id
     }

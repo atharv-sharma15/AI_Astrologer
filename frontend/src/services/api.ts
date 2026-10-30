@@ -185,12 +185,22 @@ class ApiService {
     return res.json();
   }
 
-  async seedDemo(): Promise<{ guest_user_id: string; chart_id: string; conversation_id: string }> {
-    const res = await fetch(`${API_BASE}/api/health/seed-demo`, { method: 'POST' });
+  async seedDemo(): Promise<{ user_id: string; chart_id: string; conversation_id: string; access_token?: string }> {
+    const res = await fetch(`${API_BASE}/api/health/seed-demo`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
     if (!res.ok) throw new Error('Failed to seed demo');
     const data = await res.json();
-    this.guestId = data.guest_user_id;
-    localStorage.setItem('vedviki_guest_id', this.guestId!);
+    if (data.access_token) {
+      this.token = data.access_token;
+      localStorage.setItem('vedviki_token', this.token!);
+    }
+    const uid = data.user_id || data.guest_user_id;
+    if (uid) {
+      this.guestId = uid;
+      localStorage.setItem('vedviki_guest_id', this.guestId!);
+    }
     return data;
   }
 }
