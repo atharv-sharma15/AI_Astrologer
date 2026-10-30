@@ -59,7 +59,25 @@ VedViki is a full-stack web application designed for beginners to explore and un
 
 ---
 
-## Quick Start (Local Development)
+## Quick Start (Easiest Way)
+
+You can launch both the backend and frontend with a single command from the project root:
+
+```bash
+# 1. Start both servers
+./start.sh
+
+# 2. Open your browser
+# Frontend: http://localhost:5173
+# Backend API Docs: http://127.0.0.1:8000/docs
+
+# 3. When done, stop all servers
+./stop.sh
+```
+
+---
+
+## Manual Local Development Setup
 
 ### 1. Prerequisites
 - Python 3.12 or 3.13

@@ -11,11 +11,14 @@ __pycache__/
 *.so
 .Python
 backend/venv/
+.pytest_cache/
 backend/.pytest_cache/
-backend/uploads/
-backend/chroma_db/
-backend/vedviki.db
-backend/vedviki.db*
+uploads/
+**/uploads/
+chroma_db/
+**/chroma_db/
+*.db
+*.db*
 
 # Node / Frontend
 frontend/node_modules/
